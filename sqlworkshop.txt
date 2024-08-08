@@ -1,0 +1,92 @@
+--Product Table
+
+CREATE TABLE Product (
+  id SERIAL PRIMARY KEY,
+  name CHAR(25) NOT NULL,
+  price DECIMAL NOT NULL
+ );
+ 
+INSERT INTO Product (name, price) VALUES ('Perfume', 2500);
+INSERT INTO Product (name, price) VALUES ('Watch', 4000);
+INSERT INTO Product (name, price) VALUES ('Shoes', 3500);
+INSERT INTO Product (name, price) VALUES ('Tshirt', 1500);
+INSERT INTO Product (name, price) VALUES ('Jeans', 3000);
+
+
+
+Select* from Product
+
+--Order Table
+	
+CREATE TABLE Orders (
+    id SERIAL PRIMARY KEY,
+    product_id INT NOT NULL,
+    order_date DATE NOT NULL,
+    quantity INT,
+    FOREIGN KEY (product_id) REFERENCES Product(id)
+);
+
+INSERT INTO Orders (product_id, order_date, quantity)VALUES (1, '08-08-2024', 10);
+INSERT INTO Orders (product_id, order_date, quantity)VALUES (2, '08-08-2024', 9);
+INSERT INTO Orders (product_id, order_date, quantity)VALUES (3, '08-08-2024', 8);
+INSERT INTO Orders (product_id, order_date, quantity)VALUES (4, '08-08-2024', 7);
+INSERT INTO Orders (product_id, order_date, quantity)VALUES (5, '08-08-2024', 6);
+
+
+INSERT INTO Orders (product_id, order_date, quantity)VALUES (5, '06-08-2024', 25);
+INSERT INTO Orders (product_id, order_date, quantity)VALUES (2, '06-08-2024', 100);
+INSERT INTO Orders (product_id, order_date, quantity)VALUES (3, '07-08-2024', 30);
+INSERT INTO Orders (product_id, order_date, quantity)VALUES (3, '07-08-2024', 09);
+INSERT INTO Orders (product_id, order_date, quantity)VALUES (1, '07-08-2024', 05);
+
+
+
+
+
+Select*from Orders
+
+
+--return product purchased on given date
+	
+SELECT P.name as product_name
+FROM Product P
+JOIN Orders O ON P.id = O.product_id
+WHERE O.order_date = '2024-08-08';
+
+
+--number of product purchased on particular date
+SELECT O.order_date, COUNT(O.product_id) AS num_products
+FROM Orders O
+GROUP BY O.order_date;
+
+
+--max price product on particular date
+
+SELECT P.name AS product_name, MAX(P.price) AS max_price
+FROM Product P
+JOIN Orders O ON P.id = O.product_id
+WHERE O.order_date = '2024-08-07'
+GROUP BY P.name
+ORDER BY MAX(P.price) DESC
+LIMIT 1;
+
+--function to find the total sales price of the day
+
+CREATE OR REPLACE FUNCTION get_total_sales_on_date(sale_date DATE)
+RETURNS DECIMAL AS $$
+DECLARE
+    total_sales DECIMAL;
+BEGIN
+    SELECT SUM(P.price * O.quantity) INTO total_sales
+    FROM Product P
+    JOIN Orders O ON P.id = O.product_id
+    WHERE O.order_date = sale_date;
+    
+    RETURN total_sales;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+
+SELECT get_total_sales_on_date('2024-08-06') AS total_sales;
